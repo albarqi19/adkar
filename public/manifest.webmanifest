@@ -1,0 +1,18 @@
+{
+  "name": "قلب يذكر الله",
+  "short_name": "استغفار",
+  "lang": "ar",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#0c1023",
+  "theme_color": "#0c1023",
+  "description": "عداد استغفار وأذكار مع تذكيرات يومية ودعم PWA",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "192x192 256x256 384x384 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
