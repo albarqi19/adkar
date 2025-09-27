@@ -11,12 +11,12 @@ const tabs = [
   },
   {
     to: "/adhkar",
-    label: "الصباح والمساء",
+    label: "الأذكار +",
     icon: Sunrise,
   },
   {
     to: "/duas",
-    label: "أدعية",
+    label: "حصن",
     icon: BookOpenText,
   },
   {

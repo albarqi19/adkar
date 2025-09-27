@@ -1,68 +1,86 @@
+import rawCategories from "../adhkar.json";
+
+const AUDIO_BASE = "https://raw.githubusercontent.com/rn0x/Adhkar-json/main";
+
 export type DhikrItem = {
   id: string;
   text: string;
-  transliteration?: string;
   repeat: number;
+  audio?: {
+    filename: string;
+    url: string;
+  };
+  categoryId: number;
+  categoryName: string;
   virtue?: string;
 };
 
-export const morningAdhkar: DhikrItem[] = [
-  {
-    id: "istighfar",
-    text: "أَسْتَغْفِرُ اللَّهَ الْعَظِيمَ الَّذِي لَا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ وَأَتُوبُ إِلَيْهِ",
-    repeat: 3,
-    virtue: "مغفرة الذنوب ورفعة الدرجات.",
-  },
-  {
-    id: "kursi",
-    text: "اللّهُ لا إِلَـهَ إِلا هُوَ الْحَيُّ الْقَيُّومُ ... و لا يؤوده حفظهما و هو العلي العظيم",
-    repeat: 1,
-    virtue: "حفظ من الله حتى المساء.",
-  },
-  {
-    id: "ikhlas",
-    text: "قُلْ هُوَ اللَّهُ أَحَدٌ",
-    repeat: 3,
-    virtue: "تعدل ثلث القرآن.",
-  },
-  {
-    id: "flaq",
-    text: "قُلْ أَعُوذُ بِرَبِّ الْفَلَقِ",
-    repeat: 3,
-  },
-  {
-    id: "nas",
-    text: "قُلْ أَعُوذُ بِرَبِّ النَّاسِ",
-    repeat: 3,
-  },
-];
+export type AdhkarCategory = {
+  id: number;
+  name: string;
+  items: DhikrItem[];
+  audioPlaylistUrl?: string;
+};
 
-export const eveningAdhkar: DhikrItem[] = [
-  {
-    id: "sayyid",
-    text: "اللَّهُمَّ أَنْتَ رَبِّي لَا إِلَهَ إِلَّا أَنْتَ ... وَأَبُوءُ بِذَنْبِي فَاغْفِرْ لِي",
-    repeat: 1,
-    virtue: "من قالها موقناً بها فمات قبل المساء دخل الجنة.",
-  },
-  {
-    id: "kursi-night",
-    text: "اللّهُ لا إِلَـهَ إِلا هُوَ الْحَيُّ الْقَيُّومُ ... و لا يؤوده حفظهما و هو العلي العظيم",
-    repeat: 1,
-  },
-  {
-    id: "tasbih",
-    text: "سُبْحَانَ اللَّهِ وَبِحَمْدِهِ",
-    repeat: 100,
-    virtue: "تُحَطُّ الخطايا وإن كانت مثل زبد البحر.",
-  },
-  {
-    id: "salawat",
-    text: "اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ",
-    repeat: 10,
-  },
-  {
-    id: "hasbi",
-    text: "حَسْبِيَ اللَّهُ لَا إِلَهَ إِلَّا هُوَ عَلَيْهِ تَوَكَّلْتُ وَهُوَ رَبُّ الْعَرْشِ الْعَظِيمِ",
-    repeat: 7,
-  },
-];
+type RawCategory = {
+  id: number;
+  category: string;
+  audio?: string;
+  filename?: string;
+  array: Array<{
+    id: number;
+    text: string;
+    count?: number | string;
+    audio?: string;
+    filename?: string;
+  }>;
+};
+
+const normalizeCount = (value: number | string | undefined): number => {
+  if (value === undefined || value === null) {
+    return 1;
+  }
+  if (typeof value === "number") {
+    return value > 0 ? value : 1;
+  }
+  const parsed = parseInt(value, 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
+};
+
+const resolveAudioUrl = (path?: string): { filename: string; url: string } | undefined => {
+  if (!path) return undefined;
+  const sanitized = path.startsWith("/") ? path.slice(1) : path;
+  return {
+    filename: sanitized.replace(/^audio\//, ""),
+    url: `${AUDIO_BASE}/${sanitized}`,
+  };
+};
+
+const parsedCategories: AdhkarCategory[] = (rawCategories as RawCategory[]).map((category) => ({
+  id: category.id,
+  name: category.category,
+  items: category.array.map((item) => ({
+    id: `${category.id}-${item.id}`,
+    text: item.text.trim(),
+    repeat: normalizeCount(item.count),
+    audio: resolveAudioUrl(item.audio),
+    categoryId: category.id,
+    categoryName: category.category,
+  })),
+  audioPlaylistUrl: resolveAudioUrl(category.audio)?.url,
+}));
+
+const categoryByName = parsedCategories.reduce<Record<string, AdhkarCategory | undefined>>(
+  (acc, category) => ({
+    ...acc,
+    [category.name]: category,
+  }),
+  {}
+);
+
+const morningEvening = categoryByName["أذكار الصباح والمساء"];
+
+export const morningAdhkar: DhikrItem[] = morningEvening?.items ?? [];
+export const eveningAdhkar: DhikrItem[] = morningEvening?.items ?? [];
+
+export const adhkarCategories = parsedCategories;

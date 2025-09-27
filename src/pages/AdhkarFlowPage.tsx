@@ -1,10 +1,11 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronRight, CheckCircle2, Repeat2 } from "lucide-react";
+import { ChevronRight, CheckCircle2, Repeat2, Volume2, Square, Loader2 } from "lucide-react";
 import { morningAdhkar, eveningAdhkar } from "../data/adhkar";
 import { useAdhkarSession } from "../hooks/useAdhkarSession";
 import { useProgress } from "../context/ProgressContext";
 import { useVibration } from "../hooks/useVibration";
+import { useDhikrAudio } from "../hooks/useDhikrAudio";
 
 const titles = {
   morning: {
@@ -33,6 +34,7 @@ export function AdhkarFlowPage({ mode }: AdhkarFlowPageProps) {
   });
 
   const { currentItem, repeatRemaining, advance, reset, stepIndex, isComplete, percentage } = session;
+  const { state: audioState, isPlaying, play, stop, reset: resetAudio } = useDhikrAudio();
 
   const totalSteps = sequences.length;
   const titleContent = titles[mode];
@@ -46,7 +48,12 @@ export function AdhkarFlowPage({ mode }: AdhkarFlowPageProps) {
   const handleReset = () => {
     reset();
     clearAdhkarCompletion(mode);
+    resetAudio();
   };
+
+  useEffect(() => {
+    resetAudio();
+  }, [currentItem?.id, resetAudio]);
 
   return (
     <section className="flex min-h-screen flex-col px-6 pt-12 pb-24">
@@ -110,6 +117,39 @@ export function AdhkarFlowPage({ mode }: AdhkarFlowPageProps) {
                   <p className="rounded-2xl bg-white/5 p-3 text-xs text-slate-200">
                     فضل الذكر: {currentItem.virtue}
                   </p>
+                ) : null}
+                {currentItem.audio ? (
+                  <div className="space-y-2 text-right">
+                    <button
+                      type="button"
+                      onClick={() => (isPlaying ? stop() : play(currentItem))}
+                      className="flex items-center justify-between gap-3 rounded-2xl bg-white/10 px-4 py-3 text-sm text-white transition hover:bg-white/15"
+                    >
+                      <span className="flex flex-row-reverse items-center gap-2">
+                        {audioState === "loading" ? (
+                          <Loader2 className="h-5 w-5 animate-spin" />
+                        ) : isPlaying ? (
+                          <Square className="h-5 w-5" />
+                        ) : (
+                          <Volume2 className="h-5 w-5" />
+                        )}
+                        <span>{isPlaying ? "إيقاف الصوت" : "تشغيل الصوت"}</span>
+                      </span>
+                      <span className="text-xs text-white/60">
+                        {audioState === "loading"
+                          ? "جاري تنزيل التلاوة..."
+                          : currentItem.audio.filename?.replace(/\.mp3$/i, "") ?? "MP3"}
+                      </span>
+                    </button>
+                    {audioState === "error" ? (
+                      <p className="text-xs text-rose-200">
+                        تعذّر تحميل الصوت، تأكد من الاتصال بالإنترنت ثم حاول مرة أخرى.
+                      </p>
+                    ) : null}
+                    {audioState === "ready" && !isPlaying ? (
+                      <p className="text-xs text-white/60">الصوت محفوظ للتشغيل دون إعادة تحميل.</p>
+                    ) : null}
+                  </div>
                 ) : null}
               </div>
 
