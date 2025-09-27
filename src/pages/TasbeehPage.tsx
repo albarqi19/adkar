@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import clsx from "clsx";
 import { usePreferences } from "../context/PreferencesContext";
 import { useProgress } from "../context/ProgressContext";
 import { useVibration } from "../hooks/useVibration";
@@ -6,9 +7,10 @@ import { formatGregorian, formatHijri } from "../utils/date";
 import { RefreshCcw, Target, Flame } from "lucide-react";
 
 export function TasbeehPage() {
-  const { dailyTasbeehGoal } = usePreferences();
+  const { dailyTasbeehGoal, theme } = usePreferences();
   const { tasbeehCount, incrementTasbeeh, resetTasbeeh } = useProgress();
   const vibrate = useVibration();
+  const isDark = theme === "dark";
 
   const progress = Math.min(tasbeehCount / dailyTasbeehGoal, 1);
   const remaining = Math.max(dailyTasbeehGoal - tasbeehCount, 0);
@@ -27,18 +29,30 @@ export function TasbeehPage() {
   };
 
   return (
-    <section className="px-6 pt-12 pb-12 space-y-6">
-      <header className="rounded-3xl bg-dusk/70 p-6 shadow-lg backdrop-blur-xl">
+    <section className="space-y-6 px-6 pb-12 pt-10">
+      <header
+        className={clsx(
+          "rounded-3xl p-6 shadow-lg backdrop-blur-xl transition-colors",
+          isDark
+            ? "bg-dusk/70 text-white"
+            : "border border-white/70 bg-white/85 text-amber-900 shadow-amber-200/60"
+        )}
+      >
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-sm text-slate-300">اليوم</p>
-            <h1 className="text-2xl font-bold text-white">{gregorian}</h1>
-            <p className="text-sm text-slate-400">{hijri}</p>
+            <p className={clsx("text-sm", isDark ? "text-slate-300" : "text-amber-800/80")}>اليوم</p>
+            <h1 className={clsx("text-2xl font-bold", isDark ? "text-white" : "text-amber-900")}>{gregorian}</h1>
+            <p className={clsx("text-sm", isDark ? "text-slate-400" : "text-amber-700/70")}>{hijri}</p>
           </div>
           <button
             type="button"
             onClick={() => resetTasbeeh()}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-midnight-soft text-slate-200 shadow-inner shadow-black/40 transition hover:text-brand-200"
+            className={clsx(
+              "flex h-10 w-10 items-center justify-center rounded-full shadow-inner transition",
+              isDark
+                ? "bg-midnight-soft text-slate-200 shadow-black/40 hover:text-brand-200"
+                : "bg-amber-100 text-amber-800 shadow-amber-300/50 hover:bg-amber-200"
+            )}
             aria-label="إعادة التعيين"
           >
             <RefreshCcw className="h-5 w-5" />
@@ -46,18 +60,30 @@ export function TasbeehPage() {
         </div>
 
         <div className="mt-6 space-y-3">
-          <div className="flex items-center justify-between text-sm font-medium text-slate-200">
+          <div
+            className={clsx(
+              "flex items-center justify-between text-sm font-medium",
+              isDark ? "text-slate-200" : "text-amber-900"
+            )}
+          >
             <span>هدف اليوم</span>
             <span>{dailyTasbeehGoal} تسبيحة</span>
           </div>
-          <div className="h-2 w-full overflow-hidden rounded-full bg-midnight-soft">
+          <div
+            className={clsx(
+              "h-2 w-full overflow-hidden rounded-full",
+              isDark ? "bg-midnight-soft" : "bg-amber-100"
+            )}
+          >
             <div
               className="h-full rounded-full bg-gradient-to-r from-brand-200 via-brand-300 to-brand-500 transition-all duration-500"
               style={{ width: `${progress * 100}%` }}
               aria-hidden
             />
           </div>
-          <p className="text-xs text-slate-400">ابدأ الآن، بالاستغفار يفتح الله لك أبواب الرحمة.</p>
+          <p className={clsx("text-xs", isDark ? "text-slate-400" : "text-amber-700/80")}>
+            ابدأ الآن، بالاستغفار يفتح الله لك أبواب الرحمة.
+          </p>
         </div>
       </header>
 
@@ -74,24 +100,47 @@ export function TasbeehPage() {
         </div>
 
         <div className="grid w-full grid-cols-2 gap-3 text-sm">
-          <div className="flex items-center gap-3 rounded-2xl bg-dusk/60 p-4">
-            <Target className="h-5 w-5 text-brand-200" />
+          <div
+            className={clsx(
+              "flex items-center gap-3 rounded-2xl p-4 transition-colors",
+              isDark ? "bg-dusk/60" : "bg-white/80"
+            )}
+          >
+            <Target className={clsx("h-5 w-5", isDark ? "text-brand-200" : "text-amber-700")} />
             <div>
-              <p className="text-xs text-slate-400">المتبقي على الهدف</p>
-              <p className="text-lg font-semibold text-white">{remaining} ذكر</p>
+              <p className={clsx("text-xs", isDark ? "text-slate-400" : "text-amber-700/80")}>المتبقي على الهدف</p>
+              <p className={clsx("text-lg font-semibold", isDark ? "text-white" : "text-amber-900")}>
+                {remaining} ذكر
+              </p>
             </div>
           </div>
-          <div className="flex items-center gap-3 rounded-2xl bg-dusk/60 p-4">
-            <Flame className="h-5 w-5 text-brand-200" />
+          <div
+            className={clsx(
+              "flex items-center gap-3 rounded-2xl p-4 transition-colors",
+              isDark ? "bg-dusk/60" : "bg-white/80"
+            )}
+          >
+            <Flame className={clsx("h-5 w-5", isDark ? "text-brand-200" : "text-amber-700")} />
             <div>
-              <p className="text-xs text-slate-400">الإنجاز اليومي</p>
-              <p className="text-lg font-semibold text-white">{tasbeehCount} تسبيحة</p>
+              <p className={clsx("text-xs", isDark ? "text-slate-400" : "text-amber-700/80")}>الإنجاز اليومي</p>
+              <p className={clsx("text-lg font-semibold", isDark ? "text-white" : "text-amber-900")}>
+                {tasbeehCount} تسبيحة
+              </p>
             </div>
           </div>
         </div>
 
-        <div className="w-full rounded-3xl bg-dusk/70 p-5 text-sm text-slate-300 shadow-inner shadow-black/30">
-          <h2 className="mb-2 text-base font-semibold text-white">نصيحة اليوم</h2>
+        <div
+          className={clsx(
+            "w-full rounded-3xl p-5 text-sm shadow-inner transition-colors",
+            isDark
+              ? "bg-dusk/70 text-slate-300 shadow-black/30"
+              : "bg-white/85 text-amber-800 shadow-amber-200/40"
+          )}
+        >
+          <h2 className={clsx("mb-2 text-base font-semibold", isDark ? "text-white" : "text-amber-900")}>
+            نصيحة اليوم
+          </h2>
           <p>
             خصص لحظات هادئة في بداية يومك ونهايته للاستغفار، واجعل هذا الموعد ثابتاً ليكون قلبك دائماً متعلقاً بذكر الله.
           </p>
